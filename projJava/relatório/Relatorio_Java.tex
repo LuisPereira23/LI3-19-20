@@ -1,0 +1,197 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{float}
+
+\title{Mestrado Integrado em Engenharia Informática \\ Relatório da Unidade Curricular \\ Laboratórios de Informática 3 \\ Projecto em Java \\ 2019/2020}
+\author{Luís Manuel Pereira 77667 \\ Pedro Miguel Duarte Araújo 70699 \\ Simão Freitas Monteiro  85489}
+\date{Maio, 2020}
+
+\usepackage[english]{babel}
+\addto\captionsenglish{% Replace "english" with the language you use
+  \renewcommand{\contentsname}%
+    {Índice}%
+}
+
+\newcommand{\SubItem}[1]{
+    {\setlength\itemindent{15pt} \item[-] #1}
+}
+
+
+\begin{document}
+
+\begin{figure}[!t]
+\includegraphics[width=8cm]{0ee-um.png}
+\centering
+\end{figure}
+
+\begin{figure}[!b]
+\minipage{0.32\textwidth}
+\includegraphics[width=3cm]{0luis.jpg} %\linewidth
+\endminipage\hfill
+\minipage{0.32\textwidth}
+\includegraphics[width=3cm]{0pedro.jpg}
+\endminipage\hfill
+\minipage{0.32\textwidth}%
+\includegraphics[width=3cm]{0simao.jpg}
+\endminipage
+\end{figure}
+
+\maketitle
+\newpage
+\tableofcontents
+
+\newpage
+\section{Introdução}\label{sec:intro}
+
+No seguimento do trabalho desenvolvido até à data na unidade curricular de LI3 e recorrendo a um paradigma de programação diferente, a Programação Orientada a Objectos, a segunda fase desta unidade curricular retoma o desenvolvimento, em parâmetros similares, de um sistema de gestão de vendas de hipermercado (SGV). No entanto, usando uma linguagem de programação que obdece ao novo paradigma, nomeadamente \textbf{JAVA}.
+
+Irá-se assim desenvolver uma aplicação \textit{desktop} que continua a usar conceitos relativos a modularidade e encapsulamento de dados, com código robusto e reutilizável. Trata-se de um problema de contexto real que reflecte a gestão de grandes volumes de dados, pelo que se procura implementar soluções optimizadas que num contexto prático possam ser escaláveis.
+
+Este \textit{use case} requer um sistema capaz de ler e processar as linhas de texto (após \textit{load} de ficheiros de texto - .txt) que contêm códigos de produtos e clientes, bem como o registo de todas as compras e vendas efectuadas, por produtos, cliente e filial (incluindo detalhes de produto como preço e o seu stock). 
+
+Para avaliar a eficiência na resolução de uma listagem de tarefas foram efectuados testes de performance ao sistema desenvolvido. 
+
+\newpage
+
+\section{Arquitectura da Aplicação}\label{sec:arqaplic}
+
+No seguimento do que foi efectuado anteriormente, foi implementada a já conhecida e usada arquitectura \texti{MVC (Model-View-Controller)}, cuja Figura~\ref{fig:arq} visa demonstrar os diferentes \textit{packages} e \textit{classes} presentes na aplicação, estes serão explicados detalhadamente nas secções seguintes.
+
+\begin{figure}[H]
+\includegraphics[scale=0.4]{1diagramaclass.png}
+\centering
+\caption{Diagrama de classes, representando o modelo MVC\label{fig:arq}}
+\end{figure}
+
+\newpage
+
+\subsection{\textit{Model}}
+
+O \textit{Model} que se encontra no presente trabalho consiste num \textit{package} chamado de \textit{"model"}. Este, como podemos observar pela Figura~\ref{fig:arq}, contém diversos \textit{packages} incluídos no mesmo.
+
+\begin{itemize}
+
+\item Um deste \textit{packages}, o \textbf{\textit{main}}, contém a principal \textit{classe} da aplicação, de nome \textit{"IModel"} (Figura~\ref{fig:mod}), que é responsável por responder às diversas \textit{queries}  assim como memorizar diversos tipos de dados;
+
+\begin{figure}[H]
+\includegraphics[scale=0.8]{2IModel.png}
+\centering
+\caption{\textit{Classe IModel}\label{fig:mod}}
+\end{figure}
+
+\item No \textit{package} \textbf{\textit{Cat}}, temos uma interface definida pela \textit{classe ICat} tem a função de armazenar os dados (Figura~\ref{fig:cat}). A esta por sua vez estão associadas duas \textit{subclasses} chamadas de  \textit{CatClientes e CatProdutos} que são responsáveis por implementar a interface e assim como memorizar os catálogos e os produtos;
+
+\begin{figure}[H]
+\includegraphics[scale=0.65]{3ICat.png}
+\centering
+\caption{\textit{Classe ICat}\label{fig:cat}}
+\end{figure}
+
+\item O \textit{package} \textbf{\textit{faturacao}} (Figura~\ref{fig:fat}, é responsável pelas informações relativas:
+
+\SubItem{Aos produtos e respectivas vendas (mensais), tendo em consideração o custo associado;}
+\SubItem{Á filial onde a venda foi efectuada.}
+
+\begin{figure}[H]
+\includegraphics[scale=0.65]{4IFaturacao.png}
+\centering
+\caption{\textit{Classe IFaturcao}\label{fig:fat}}
+\end{figure}
+
+Definiu-se facturação como sendo um catálogo especial de produtos, onde cada produto tem um objecto \textit{IVendasData}, Figura~\ref{fig:VD}, este objecto tem como objectivo memorizar todas as vendas desse produto.
+
+
+\item O comportamento do \textit{package} \textbf{\textit{filiais}} (Figura~\ref{fig:fil}) é similar ao do anteriormente descrito, \textit{package} \textbf{\textit{faturacao}}, a diferença prende-se pelo o facto de que este é relativo à informação dos clientes e suas respectivas compras. Tem assim também em consideração o custo associado e a filial onde a compra foi efectuada.
+
+\begin{figure}[H]
+\includegraphics[scale=0.65]{5IFiliais.png}
+\centering
+\caption{\textit{Classe IFiliais}\label{fig:fil}}
+\end{figure}
+
+Definiu-se filial como sendo um catálogo especial de clientes, onde cada cliente tem  um objecto \textit{IVendasData}, Figura~\ref{fig:VD}, este objecto tem como objectivo memorizar todas as compras efectuadas por um cliente.
+
+\item Como referido anteriormente, o objecto \textit{IVendasData},Figura~\ref{fig:VD}, serve para memorizar um conjunto de vendas e para fornecer estatísticas sobre a mesmas. Este objecto encontra-se inserido no \textit{package} \textbf{\textit{data}}.
+
+\begin{figure}[H]
+\includegraphics[scale=0.65]{6IVendasData.png}
+\centering
+\caption{\textit{Objecto IVendasData}\label{fig:VD}}
+\end{figure}
+
+\item O \textit{package} \textbf{\textit{reader}}, Figura~\ref{fig:reader}, contém classes que tem como funções ler os ficheiros de dados, fazer \textit{parsing} e validação dos códigos clientes e produtos.
+
+\begin{figure}[H]
+\includegraphics[scale=0.45]{7IReaderIObjStr.png}
+\centering
+\caption{\textit{Classes IReader} e \textit{IObjectStream}\label{fig:reader}}
+\end{figure}
+
+
+\end{itemize}
+
+\subsection{\textit{View}}
+Inserido no \textit{package} \textbf{\textit{view}}, Figura~\ref{fig:view}, temos a \textit{classe IView} sendo que esta tem como funções principais, realizar os \textit{prints} dos resultados das \textit{queries} e dos menus assim como funções que permitem a interacção do utilizar com a aplicação.
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.65]{8IView.png}
+\centering
+\caption{\textit{Classe IView}\label{fig:view}}
+\end{figure}
+
+
+A Figura~\ref{fig:sete}, mostra o resulta obtido pelo utilizador quando escolhe a \textit{Query 7}.
+
+\begin{figure}[H]
+\includegraphics[scale=0.65]{9_1M_Query7.JPG}
+\centering
+\caption{Resultado da \textit{Query 7}\label{fig:sete}}
+\end{figure}
+
+\subsection{\textit{Controller}}
+
+O \textit{packge} \textbf{\textit{Controller}} que por sua vez contém a \textit{classe IGestVendas}, Figura~\ref{fig:oito}, é responsável pela correta ordem de execução dos pedidos do utilizador à aplicação.
+
+\begin{figure}[H]
+\includegraphics[scale=0.65]{9_2IGestVendas.png}
+\centering
+\caption{\textit{Classe IGestVendas}\label{fig:oito}}
+\end{figure}
+
+
+\section{Testes de Leitura e Performance}\label{sec:performance}
+
+\begin{figure}[H]
+\includegraphics[scale=0.3]{9_3temposleitura.png}
+\centering
+\caption{Resultados dos tempos de leitura\label{fig:test1}}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[scale=0.3]{9_4testes_performance.png}
+\centering
+\caption{Resultados dos testes de performance\label{fig:test2}}
+\end{figure}
+
+\section{Conclusões}\label{sec:conclusoes}
+
+O objectivo deste trabalho passou pela implementação de um sistema de gestão de vendas de hipermercado, cujos dados recolhidos encontram-se em ficheiros texto relativos aos clientes, produtos e vendas dos referidos hipermercados. Neste trabalho foi desenvolvido um sistema que incorpora modularidade e encapsulamento de dados, sendo depois possível obter resultados perante determinadas \textit{queries}. Os desafios do problema passam pela gestão de grandes volumes de dados, com vista à implementação de uma solução optimizada e escalável, atendendo à ainda maior quantidade de dados obtidos num contexto real de hipermercados. 
+
+Os desafios encontrados ao longo do trabalho incluíram armazenar, aceder, gerir e retirar eficientemente uma grande quantidade de dados.
+
+Adicionalmente, o trabalho desenvolvido consolidou conhecimentos adquiridos ao longo do curso, nomeadamente nas unidades curriculares de Programação Orientada a Objectos.
+Nesta segunda fase do projecto e ao contrário da primeira, foi obtido sucesso no desenvolvimento de uma resposta a praticamente todas as \textit{queries} o desenvolvimento deste trabalho fomentou o interesse relativo a estrutura e organização de dados, dando uma noção de contexto prático a engenharia informática.
+
+
+~\nocite{F.MarioMartins2014}
+~\nocite{MarioMartins2009}
+\newpage
+\renewcommand\refname{Bibliografia}
+\bibliographystyle{ieeetr}
+\bibliography{referencias}
+
+\end{document}

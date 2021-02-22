@@ -1,0 +1,296 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{float}
+
+
+\newenvironment{mpar}{\par\noindent\minipage{\linewidth}
+\setlength{\parindent}{1em}}{\endminipage\par\medskip}
+
+
+
+\title{Relatório da Unidade Curricular \\ de Laboratórios de Informática 3 \\  Projecto em C \\ 2019/2020}
+\author{Luís Manuel Pereira 77667 \\ Pedro Miguel Duarte Araújo 70699 \\ Simão Freitas Monteiro  85489}
+\date{Abril, 2020}
+
+\usepackage[english]{babel}
+\addto\captionsenglish{% Replace "english" with the language you use
+  \renewcommand{\contentsname}%
+    {Índice}%
+}
+
+\begin{document}
+
+\begin{figure}[!t]
+\includegraphics[width=8cm]{ee-um.png}
+\centering
+\end{figure}
+
+\begin{figure}[!b]
+\minipage{0.32\textwidth}
+\includegraphics[width=3cm]{fotos/luis.jpg}%\linewidth
+\endminipage\hfill
+\minipage{0.32\textwidth}
+\includegraphics[width=3cm]{fotos/duarte.jpg}
+\endminipage\hfill
+\minipage{0.32\textwidth}%
+\includegraphics[width=3cm]{fotos/simao.jpg} 
+\endminipage
+\end{figure}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+\section{Introdução}\label{sec:intro}
+
+Tendo em vista a implementação prática de conceitos relativos a modularidade e encapsulamento de dados, com código robusto e reutilizável, o presente trabalho explora o desenvolvimento de um sistema de gestão de vendas de hipermercado (SGV). Trata-se de um problema de contexto real que reflete a gestão de grandes volumes de dados, pelo que se procura implementar soluções otimizadas que num contexto prático possam ser escaláveis.  
+
+Este \textit{use case} requer um sistema capaz de ler e processar as linhas de texto (após \textit{load} de ficheiros de texto - .txt) que contêm códigos de produtos e clientes, bem como o registo de todas as compras e vendas efetuadas, por produtos, cliente e filial (incluindo detalhes, como por exemplo se preço encontra em promoção e qual o seu stock).   
+
+O programa, que visa cumprir os objetivos mencionados, foi implementado em C, recorrendo-se à biblioteca GLib (2.62.0) para estruturação de dados. Para avaliar a eficiência do sistema na execução e resolução de tarefas foram efetuados testes de performance sobre o mesmo.  
+
+\section{Módulos}\label{sec:modelos}
+
+Esta secção visa detalhar os módulos principais do trabalho, que serão expostos individualmente nas Secções~\ref{sub:obj} a~\ref{sub:fil}. 
+
+\subsection{Objectos}\label{sub:obj}
+
+
+A criação das estruturas de dados foi de encontro ao tipo de dados a analisar, de modo a permitir uma manipulação mais eficiente dos mesmos. Os objetos criados possuem estruturas de dados privadas. 
+
+
+%\begin{figure}[h!]
+%\minipage{0.32\textwidth}
+%\includegraphics[width=4.5cm]{Struct_clientec.png} %\linewidth
+%\endminipage\hfill
+%\minipage{0.32\textwidth}
+%\includegraphics[width=4.5cm]{Struct_vendac.png}
+%\endminipage\hfill
+%\minipage{0.32\textwidth}%
+%\includegraphics[width=4.5cm]{Struct_produtoc.png}
+%\endminipage
+%\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[scale=0.7]{struct_global.png}
+\end{figure}
+
+
+%\begin{mpar}
+As funções \textit{newX}\footnote[1]{Neste caso X representa venda/cliente/produto} foram desenvolvidas para permitir criar um objeto a partir de uma string, já as funções \textit{XValida/o}, e similares, fazem a validação das strings. As funções \textit{get} permitem aceder às variáveis. 
+
+%\end{mpar}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[scale=0.7]{newVPC.png}
+\end{figure}
+
+
+\subsection{Catálogos}\label{sub:cat}
+
+O armazenamento de grandes quantidades de objetos (clientes e produtos) é feito através de módulos. Em vez de guardar os códigos de todos os produtos e clientes em arrays, os módulos construídos tratam-se de balanced binary trees, recorrendo a \textit{GTree's} da biblioteca GLib. 
+
+O catálogo de clientes é constituído por um array de 26 \textit{GTree's} uma vez que um código de cliente é constituído por uma letra seguida de quatro dígitos (ex. A5000), e cada \textit{GTree} corresponde a uma letra do alfabeto, isto é, a \textit{GTree[0]} corresponde à lista de clientes que começam com a letra "A". Esta escolha permite lidar apenas com os quatro dígitos dos códigos dos clientes, sendo que em cada \textit{GTree} só introduzimos um inteiro constituído desses quatro dígitos, permitindo assim agilizar a procura.  
+
+No que aos produtos toca o procedimento para lidar com o seu catálogo é similar, no entanto, uma vez que os códigos dos produtos têm duas letras e quatro dígitos (ex.AA9999), foi implementada uma matriz de 26x26 \textit{GTree's} em vez de um array de 26. 
+
+Ambos os catálogos descritos incluem as funções de seguida apresentadas:
+
+\begin{itemize}
+\item \textit{new\_catClis/catProds} - permite criar um catálogo vazio;
+\item \textit{free\_catClis/catProds} - permite destruir um catálogo e os objectos presentes no mesmo (para libertar memória);
+\item \textit{insert\_catClis/catProds} - permite inserir um objeto (cliente ou produto) no catálogo;
+\item \textit{insert\_withdata\_catClis/catProds} - funciona da mesma forma que a função \textit{insert}, onde o objeto é o \textit{key}, com a particularidade de conter um apontador \textit{data} que vai ser o \textit{value} do funcionamento da \textit{GTree};
+\item \textit{get\_data\_catClis/catProds} - procede ao inverso da função anterior, ou seja, dado um cliente a função devolve o \textit{value} que está armazenado no cliente;
+\item \textit{existe\_catClis/catProds} - verifica a exitência de um cliente ou produto no catálogo;
+\item \textit{tamanho\_catClis/catProds} - contabiliza os elementos contidos no catálogo;
+\item \textit{lista\_completa\_catClis/catProds} - devolve uma lista de strings de todos os clientes/produtos contidos no catálogo.
+\end{itemize}
+
+Adicionalmente, o catálogo de clientes inclui as funções:
+
+\begin{itemize}
+\item \textit{new\_catClisList} - cria um catálogo de clientes e insere os códigos dos mesmos contidos numa lista de strings.
+\item \textit{add\_to\_lista\_catClis} - insere no catálogo todos os códigos de clientes contidos numa lista de strings;
+\end{itemize}
+
+Por sua vez, o catálogo de produtos inclui ainda:
+
+\begin{itemize}
+\item \textit{lista\_por\_letra\_catProds} - devolve a lista de strings dos produtos que começam por uma determinada letra;
+\item\textit{foreach\_catProds} - tem como objectivo aplicar a função \textit{foreach} do GLib a todos os AVLs do catálogo.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{new_cats.png}
+\end{figure}
+
+\subsection{Faturação}\label{sub:fat}
+
+Este módulo é responsável pela informação relativa aos produtos e respetivas vendas (mensais), tendo em consideração o custo associado, se o produto foi adquirido em promoção ou pelo preço regular (modo de venda) e a filial onde a venda foi efetuada. A figura~\ref{fig:fat_dia} ilustra os componentes,  funcionamento e potenciais outputs deste módulo. 
+Definimos faturação como sendo um catálogo de produtos especial, onde cada produto tem em \textit{value} uma struct - \textit{FaturaTotal}, que contém todas as vendas de um determinado produto.  
+Esta struct é composta por um array tridimensional de \textit{GSList}, que permite separar as listas de vendas em função do mês, filial e modo de venda. Assim, cada \textit{GSList} contém todas faturas relativas a um determinado mês, filial e modo de venda.   
+Definiu-se como fatura a informação sobre o preço unitário e a quantidade de produtos vendidos. Estas encontram-se ordenadas nas listas em função do preço total. 
+
+\begin{figure}[H]
+\includegraphics[scale=0.5]{faturacao_ex.png}
+\centering
+\caption{Diagrama do módulo de faturação e da funcionalidade do array tridimensional\label{fig:fat_dia}}
+\end{figure}
+
+O módulo relativo à faturação contém as seguintes funções:
+
+\begin{itemize}
+\item \textit{new\_facturacao} - permite criar um módulo de faturação vazio;
+\item  \textit{free\_facturacao} - permite destruir um módulo de faturação (para libertar memória);
+\item \textit{add\_venda\_facturacao} - permite inserir as informações de uma venda no módulo faturação;
+\item \textit{total\_vendas\_full} - devolve o número de vendas de um produto durante um determinado mês, numa determinada filial e modo de venda (adquirido em promoção ou preço regular);
+\item \textit{total\_facturado\_full} - devolve o total faturado por um produto durante um determinado mês, numa determinada filial e modo de venda;
+\item \textit{total\_vendas\_facturado} - calcula o número de vendas e o total faturado por todos os produtos durante um determinado mês, numa determinada filial e modo de venda;
+\item \textit{produtos\_nao\_comprado} - devolve a lista dos códigos dos produtos que nunca foram comprados.
+\end{itemize}
+
+\begin{figure}[h!]
+\includegraphics[width=14cm]{faturacaoh.png}
+\centering
+\end{figure}
+
+\subsection{Filial}\label{sub:fil}
+
+Este modulo contém a informação da relação entre os produtos e os clientes, mas em referência às filiais. Definiu-se um array bidimensional de catálogo de clientes, onde cada cliente tem em \textit{value} uma lista que contém todas as compras efetuadas pelo mesmo, ordenadas em função do produto adquirido. 
+O array bidimensional de catálogo de clientes foi usado para poder separar as compras em função do mês e do modo de venda. Assim, cada catálogo de clientes contém todas as compras efetuadas num certo mês e num certo modo. 
+
+\begin{itemize}
+
+\item \textit{new\_filiais} - permite criar um array de três módulos filiais vazios;
+\item \textit{destroy\_filiais} - permite destruir um array de três filiais (para libertar memória);
+\item \textit{add\_venda\_filial} - permite inserir as informações de uma venda no módulo filial;
+\item \textit{compras\_clientes} - devolve o número de compras que efetuadas por um cliente durante um certo mês e modo de venda, numa certa filial;
+\item \textit{clientes\_em\_todas\_filiais} - devolve a lista dos códigos dos clientes que efetuaram compras em todas as filiais;
+\item \textit{clientes\_sem\_compras} - devolve a lista dos códigos dos clientes que não fizeram compras em nenhuma filial.
+\end{itemize}
+
+\begin{figure}[H]
+\includegraphics[width=12.5cm]{filialh.png}
+\centering
+\end{figure}
+\newpage
+
+
+\section{Arquitetura da Aplicação}\label{sec:arqaplic}
+
+Neste projeto foi implementada de uma arquitetura MVC (\textit{model-view-controller}), cuja Figura~\ref{fig:arq} visa exemplificar o funcionamento para o caso da execução da \textit{query} 2, onde o módulo {\fontfamily{qcr}\selectfont{navegador}} funciona como \textit{view}, o módulo {\fontfamily{qcr}\selectfont{interface}} age como \textit{controller}, e os restantes módulos fazem parte de \textit{model}.  
+
+\begin{figure}[H]
+\includegraphics[scale=0.6]{diagrama.png}
+\centering
+\caption{Exemplificação do funcionamento da aplicação (aquando do funcionamento da \textit{Query} 2)\label{fig:arq}}
+\end{figure}
+
+\subsection{\textit{View}}
+
+O módulo \textit{navegador} contém as funções responsáveis pela interação entre o utilizador e a aplicação. Neste módulo estão presentes as seguintes funções\footnote{X representa o número da \textit{query}}: 
+
+\begin{mpar}{}
+\begin{itemize}
+\item  \textit{menu()} -  apresenta o menu da aplicação e recupera o input do utilizador;
+\item  \textit{menu\_queryX()} - permite à aplicação apresentar no terminal o local onde o utilizador irá colocar os argumentos para a sua \textit{query};
+\item  \textit{print\_queryX()} - permite à aplicação apresentar no terminal os resultado das \textit{query}.
+\item  \textit{navegar\_listString()} - permite ao utilizador navegar nos resultados das \textit{queries} quando estes são de grande volume;
+\end{itemize}
+
+\begin{figure}[H]
+\includegraphics[scale=0.5]{navegadorh.png}
+\centering
+\end{figure}
+
+
+\end{mpar}
+
+\subsection{\textit{Controller}}
+
+O módulo \textit{interface} é responsável pela correta ordem de execução, por parte da aplicação, dos pedidos realizados pelo utilizador. Foram então seguidas as recomendações presentes no enunciado do projeto, no qual o módulo \textit{interface} deveria conter a \textit{struct} SGV e onde cada \textit{query} é definida por uma função com um "nome autoexplicativo" do que esta deve fazer para resolver a \textit{query} em questão. Na imagem que se segue encontram-se então: 
+
+\begin{itemize}
+\item \textit{start(SGV sgv)} -  age como a função principal da aplicação, sendo nela declarados os módulos que memorizam os dados dos ficheiros de texto;
+\item \textit{getProductsStartedByLetter()} - responsável pela ordem de execução do código que resolve, neste caso em especifico, a query 2.
+\end{itemize}
+
+\begin{figure}[H]
+\includegraphics[scale=0.5]{new_interface.png}
+\centering
+\end{figure}
+
+\subsection{\textit{Model}}
+
+O \textit{model} da arquitetura MVC implementada é constituído por vários ficheiros, pelos módulos apresentados na Secção~\ref{sec:modelos}, bem como os três módulos seguintes: 
+
+\begin{itemize}
+
+\item \textit{Utils}: contém várias funções e structs que são uteis em toda a aplicação;
+
+\begin{figure}[H]
+\includegraphics[scale=0.65]{utilsh.png}
+\centering
+\end{figure}
+
+\item \textit{Leitura}: contém as funções que permitem ler e tratar os dados dos três ficheiros;
+
+\begin{figure}[H]
+\includegraphics[scale=0.65]{leiturah.png}
+\centering
+\end{figure}
+
+\item \textit{Queries}: contém as funções que resolvem as \textit{queries}.
+
+\begin{figure}[H]
+\includegraphics[scale=0.45]{queriesh.png}
+\centering
+\end{figure}
+\end{itemize}
+
+\newpage
+\section{Testes de Performance}\label{sec:performance}
+
+Foram efetuados testes de performances, usando a métrica \textit{Elapsed Time}, i.e., tempo real de espera por parte do utilizador, para as \textit{Query 1}; \textit{Query 6}, \textit{Query 7} e \textit{Query 9}. Os testes foram realizados para os ficheiros de tamanho 1M(Figura~\ref{fig:1MF}), 3M(Figura~\ref{fig:3MF}) e 5M(Figura~\ref{fig:5MF}), como demonstrado pelas imagens seguintes. 
+
+\begin{figure}[H]
+\includegraphics[scale=0.45]{et_1M.png}
+\centering
+\caption{Teste de Performance, ficheiro 1M\label{fig:1MF}}
+\end{figure}
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.43]{et_3M.png}
+\centering
+\caption{Teste de Performance, ficheiro 3M\label{fig:3MF}}
+\end{figure}
+
+
+\begin{figure}[H]
+\includegraphics[scale=0.43]{et_5M.png}
+\centering
+\caption{Teste de Performance, ficheiro 5M\label{fig:5MF}}
+\end{figure}
+
+\section{Conclusões}\label{sec:conclusoes}
+
+Neste trabalho foi implementado um sistema de gestão de vendas de hipermercados, de onde os dados foram recolhidos de ficheiros texto que continham informação relativa a clientes, produtos e vendas dos mesmos. O objetivo do trabalho passou pelo desenvolvimento de um sistema que conseguisse incorporar modularidade e encapsulamento de dados, sendo possível obter resultados através de um conjunto de \textit{queries}. Os desafios deste projeto passaram pela gestão de grandes volumes de dados, com vista à implementação de uma solução otimizada e escalável, atendendo à ainda maior quantidade de dados obtidos num contexto real de hipermercados.  
+
+As dificuldades encontradas ao longo deste projeto passaram por armazenar, aceder, gerir e retirar eficientemente a enorme quantidade de dados fornecida nos ficheiros de texto fornecidos, o que incentivou à leitura e compreensão da documentação sobre o manuseamento da biblioteca GLib e das suas potencialidades, bem como a várias experiências para corretamente usufruir das mesmas. 
+Adicionalmente, o trabalho desenvolvido consolidou conhecimentos adquiridos ao longo do curso, nomeadamente nas unidades curriculares de Programação Imperativa e Algoritmos e Complexidades. Apesar da solução apresentada não resolver todas as tarefas pedidas, o desenvolvimento deste trabalho fomentou o interesse relativo a estrutura e organização de dados, dando uma noção de contexto prático a engenharia informática. 
+
+\newpage
+\renewcommand\refname{Bibliografia}
+\nocite{*}
+\bibliographystyle{ieeetr}
+\bibliography{referencias}
+
+\end{document}
