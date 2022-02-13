@@ -1,1 +1,1 @@
-# Laboratorios de Informatica 3
+# Informatics Labs 3
